@@ -1,1 +1,30 @@
 /* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.main-container {
+    margin-top: 5px;
+    padding: 10px;
+}
+
+.btn {
+    color: white;
+    padding: 4px 8px;
+    margin-right: 3px;
+}
+
+.btn-pink {
+    background-color: #c2185b;
+}
+
+.btn-oranje {
+    background-color: #f44336;
+}
