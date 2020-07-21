@@ -5,6 +5,9 @@ import * as Mapboxgl from 'mapbox-gl';
 import { Marcador } from '../../classes/marcador.class';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MapaEditarComponent } from './mapa-editar.component';
+
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.component.html',
@@ -22,17 +25,20 @@ export class MapaComponent implements OnInit {
 
   botonesBorrar: any  = [];
 
+  botonesEditar: any = [];
+
   idBotones = 0;
 
   seCargoDelStorage = false;
 
-  constructor( private snackBar: MatSnackBar ) {}
+  constructor( private snackBar: MatSnackBar,
+               public dialog: MatDialog ) {}
 
 
    crearMarcadoresDeStorage = () => {
     let contador = 0;
     this.marcadores.forEach( (marcador) => {
-      this.crearMarcador(marcador.lng, marcador.lat, marcador.id);
+      this.crearMarcador(marcador.lng, marcador.lat, marcador.id, marcador.idBotonEditar, marcador.titulo, marcador.desc);
       this.establecerEventoEnMarcadores(contador);
       ++contador;
     });
@@ -61,13 +67,18 @@ export class MapaComponent implements OnInit {
     }
 
     this.mapa.on('click', (e) => {
-      const nuevoMarcador = new Marcador(e.lngLat.lat, e.lngLat.lng, this.idBotones );
+      const nuevoMarcador = new Marcador(e.lngLat.lat, e.lngLat.lng, this.idBotones, this.idBotones );
 
       this.marcadores.push(nuevoMarcador);
 
       this.guardarStorage();
 
-      this.crearMarcador( nuevoMarcador.lng, nuevoMarcador.lat, nuevoMarcador.id);
+      this.crearMarcador( nuevoMarcador.lng,
+                          nuevoMarcador.lat,
+                          nuevoMarcador.id,
+                          nuevoMarcador.idBotonEditar,
+                          nuevoMarcador.titulo,
+                          nuevoMarcador.desc );
 
       this.establecerEventoEnMarcadores(this.indice);
 
@@ -84,13 +95,13 @@ export class MapaComponent implements OnInit {
 
 
 
-  crearMarcador = (lng: number, lat: number, id: number ) => {
+  crearMarcador = (lng: number, lat: number, id: number, idboton: string, titulo: string, desc: string ) => {
 
     const popup = new Mapboxgl.Popup({ offset: 25}).setHTML(
-      '<strong style="color: black">Titulo</strong>' +
-      '<br>' + '<p style="color:black">Lorem ipsum</p>' +
+      `<strong style="color: black">${ titulo }</strong>` +
+      `<br>' + '<p style="color:black">${ desc }</p>` + 
       '<div>' +
-        '<button class="btn btn-pink">Editar</button>' +
+        '<button id="' + idboton + '"class="btn btn-pink">Editar</button>' +
         '<button id="' + id + '" class="btn btn-oranje">Borrar</button>' +
       '</div>'
     );
@@ -127,6 +138,13 @@ export class MapaComponent implements OnInit {
         this.botonesBorrar.item(contador).addEventListener('click', this.borrar );
       }
     }
+
+    this.botonesEditar = document.getElementsByClassName('btn-pink');
+    for (let contador = 0; contador < this.botonesEditar.length; contador++){
+      if (this.botonesEditar.item(contador)){
+        this.botonesEditar.item(contador).addEventListener('click', this.editarMarcador );
+      }
+    }
   }
 
 
@@ -152,6 +170,25 @@ export class MapaComponent implements OnInit {
 
 
     this.guardarStorage();
+  }
+
+
+  editarMarcador = (e) => {
+
+    const id = e.target.id;
+    let indice = 0;
+    let contador = 0;
+    this.marcadores.forEach((marcador) => {
+      if (marcador.idBotonEditar == id){
+        indice = contador;
+      }
+      contador++;
+    });
+
+    const dialogRef = this.dialog.open(MapaEditarComponent , {
+      width: '250px',
+      data: {titulo: this.marcadores[indice].titulo , desc: this.marcadores[indice].desc } 
+    })
   }
 
 }
