@@ -188,7 +188,13 @@ export class MapaComponent implements OnInit {
     const dialogRef = this.dialog.open(MapaEditarComponent , {
       width: '250px',
       data: {titulo: this.marcadores[indice].titulo , desc: this.marcadores[indice].desc } 
-    })
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      console.log(result);
+    });
+
   }
 
 }
