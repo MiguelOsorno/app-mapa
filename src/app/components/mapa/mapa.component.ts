@@ -10,8 +10,6 @@ import { Marcador } from '../../classes/marcador.class';
   styleUrls: ['./mapa.component.css']
 })
 export class MapaComponent implements OnInit {
-  // lat = 51.678418;
-  // lng = 7.809007;
 
   indice = 0;
 
@@ -21,17 +19,20 @@ export class MapaComponent implements OnInit {
 
   mapa: Mapboxgl.Map;
 
+  botonesBorrar: any  = [];
+
+  idBotones = 0;
+
   constructor() {}
 
 
-   crearMarcadoresDeStorage(){
+   crearMarcadoresDeStorage = () => {
+    let contador = 0;
     this.marcadores.forEach( (marcador) => {
-      this.crearMarcador(marcador.lng, marcador.lat);
-      this.establecerEventoEnMarcadores(this.indice);
-      this.indice++;
+      this.crearMarcador(marcador.lng, marcador.lat, marcador.id);
+      this.establecerEventoEnMarcadores(contador);
+      ++contador;
     });
-
-    // this.establecerEventoEnMarcadores();
    }
 
 
@@ -45,40 +46,47 @@ export class MapaComponent implements OnInit {
     zoom: 16.6
     });
 
+    if ( localStorage.getItem('marcadores') ){
+      this.marcadores = JSON.parse(localStorage.getItem('marcadores'));
+      if (this.marcadores.length > 0){
+        this.crearMarcadoresDeStorage();
+        this.idBotones = this.marcadores[(this.marcadores.length - 1)].id + 1;
+        this.indice = this.marcadores.length;
+      }
+    }
+
     this.mapa.on('click', (e) => {
-      const nuevoMarcador = new Marcador(e.lngLat.lat, e.lngLat.lng);
+      const nuevoMarcador = new Marcador(e.lngLat.lat, e.lngLat.lng, this.idBotones );
 
       this.marcadores.push(nuevoMarcador);
 
       this.guardarStorage();
 
-      this.crearMarcador( nuevoMarcador.lng, nuevoMarcador.lat);
+      this.crearMarcador( nuevoMarcador.lng, nuevoMarcador.lat, nuevoMarcador.id);
 
       this.establecerEventoEnMarcadores(this.indice);
 
+      this.idBotones++;
       this.indice++;
-
-      // this.establecerEventoBotonesMarcadores();
-
     });
 
-    if ( localStorage.getItem('marcadores') ){
-      this.marcadores = JSON.parse(localStorage.getItem('marcadores'));
-      if (this.marcadores.length > 0){
-        this.crearMarcadoresDeStorage();
-      }
-    }
+
+
+   
 
   }
 
-  crearMarcador(lng: number, lat: number){
+
+
+
+  crearMarcador = (lng: number, lat: number, id: number ) => {
 
     const popup = new Mapboxgl.Popup({ offset: 25}).setHTML(
       '<strong style="color: black">Titulo</strong>' +
       '<br>' + '<p style="color:black">Lorem ipsum</p>' +
       '<div>' +
         '<button class="btn btn-pink">Editar</button>' +
-        '<button class="btn btn-oranje">Borrar</button>' +
+        '<button id="' + id + '" class="btn btn-oranje">Borrar</button>' +
       '</div>'
     );
 
@@ -92,49 +100,47 @@ export class MapaComponent implements OnInit {
   }
 
 
-  establecerEventoEnMarcadores(indice: number){
-
-    console.log('Se le agrego evento mouse enter al numero:', indice);
+  establecerEventoEnMarcadores = (indice: number) => {
     const marcador: Mapboxgl.Marker = this.arrayDeMarcadores[indice];
     marcador.getElement().addEventListener('mouseenter', () => {
       if (!marcador.getPopup().isOpen()){
         marcador.togglePopup();
+        this.establecerEventoBotonesMarcadores();
       }
     });
-
-    /*
-    this.arrayDeMarcadores.forEach((marcador: Mapboxgl.Marker) => {
-      marcador.getElement().addEventListener('mouseenter', () => {
-       if (!marcador.getPopup().isOpen()){
-            marcador.togglePopup();
-            this.establecerEventoBotonesMarcadores();
-       }
-      });
-    });*/
-
   }
 
-  /*establecerEventoBotonesMarcadores(){
-    let botonesBorrar = document.getElementsByClassName('btn-oranje');
-    console.log(botonesBorrar);
-    for (let contador = 0; contador < botonesBorrar.length; contador++){
-      if (botonesBorrar.item(contador)){
-        botonesBorrar.item(contador).addEventListener('click', () => this.borrar(contador));
+  establecerEventoBotonesMarcadores = () => {
+    this.botonesBorrar = document.getElementsByClassName('btn-oranje');
+    for (let contador = 0; contador < this.botonesBorrar.length; contador++){
+      if (this.botonesBorrar.item(contador)){
+        this.botonesBorrar.item(contador).addEventListener('click', this.borrar );
       }
     }
-  }*/
+  }
 
 
-  guardarStorage(){
-    console.log('numero de elemento', this.marcadores.length);
+  guardarStorage = () => {
     localStorage.setItem('marcadores', JSON.stringify( this.marcadores ) );
   }
 
-  borrar(i: number){
-   /* console.log('hola');
-    this.marcadores.splice(i, 1);
+  borrar = (e) => {
+    const id = e.target.id;
+    let contador = 0;
+
+    this.marcadores.forEach((marcador) => {
+
+      if(marcador.id == id){
+        this.marcadores.splice(contador, 1);
+        this.arrayDeMarcadores[contador].remove();
+        this.arrayDeMarcadores.splice(contador, 1);
+        this.indice = this.marcadores.length;
+      }
+      ++contador;
+    });
+
+
     this.guardarStorage();
-    console.log(this.arrayDeMarcadores[i]);*/
   }
 
 }
