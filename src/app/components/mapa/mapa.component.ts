@@ -95,7 +95,7 @@ export class MapaComponent implements OnInit {
 
 
 
-  crearMarcador = (lng: number, lat: number, id: number, idboton: string, titulo: string, desc: string ) => {
+  crearMarcador = (lng: number, lat: number, id: number, idboton: string, titulo: string, desc: string, seEdito: boolean = false ) => {
 
     const popup = new Mapboxgl.Popup({ offset: 25}).setHTML(
       `<strong style="color: black">${ titulo }</strong>` +
@@ -112,11 +112,16 @@ export class MapaComponent implements OnInit {
       .setPopup(popup)
       .addTo(this.mapa);
 
-    this.arrayDeMarcadores.push(marker);
+    if (!seEdito){
+      this.arrayDeMarcadores.push(marker);
+    }
+
 
     if (!this.seCargoDelStorage){
       this.snackBar.open('Marcador agregado', 'cerrar', { duration: 3000 });
     }
+
+    return marker;
 
   }
 
@@ -192,7 +197,32 @@ export class MapaComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');
-      console.log(result);
+
+      if (!result){
+        return;
+      }
+
+      this.marcadores[indice].titulo = result.titulo;
+      this.marcadores[indice].desc =  result.desc;
+
+      this.arrayDeMarcadores[indice].remove();
+
+      const nuevoMarcador = this.crearMarcador( this.marcadores[indice].lng,
+                          this.marcadores[indice].lat,
+                          this.marcadores[indice].id,
+                          this.marcadores[indice].idBotonEditar,
+                          this.marcadores[indice].titulo,
+                          this.marcadores[indice].desc,
+                          true);
+
+      this.arrayDeMarcadores[indice] =  nuevoMarcador;
+
+      this.establecerEventoEnMarcadores(indice);
+
+      this.guardarStorage();
+
+      this.snackBar.open('Marcador actualizado', 'cerrar', { duration: 3000 });
+
     });
 
   }
