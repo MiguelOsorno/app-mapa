@@ -3,6 +3,7 @@ import { environment } from '../../../environments/environment.prod';
 
 import * as Mapboxgl from 'mapbox-gl';
 import { Marcador } from '../../classes/marcador.class';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-mapa',
@@ -23,7 +24,9 @@ export class MapaComponent implements OnInit {
 
   idBotones = 0;
 
-  constructor() {}
+  seCargoDelStorage = false;
+
+  constructor( private snackBar: MatSnackBar ) {}
 
 
    crearMarcadoresDeStorage = () => {
@@ -33,6 +36,7 @@ export class MapaComponent implements OnInit {
       this.establecerEventoEnMarcadores(contador);
       ++contador;
     });
+    this.seCargoDelStorage = false;
    }
 
 
@@ -49,6 +53,7 @@ export class MapaComponent implements OnInit {
     if ( localStorage.getItem('marcadores') ){
       this.marcadores = JSON.parse(localStorage.getItem('marcadores'));
       if (this.marcadores.length > 0){
+        this.seCargoDelStorage = true;
         this.crearMarcadoresDeStorage();
         this.idBotones = this.marcadores[(this.marcadores.length - 1)].id + 1;
         this.indice = this.marcadores.length;
@@ -72,7 +77,7 @@ export class MapaComponent implements OnInit {
 
 
 
-   
+
 
   }
 
@@ -97,6 +102,11 @@ export class MapaComponent implements OnInit {
       .addTo(this.mapa);
 
     this.arrayDeMarcadores.push(marker);
+
+    if (!this.seCargoDelStorage){
+      this.snackBar.open('Marcador agregado', 'cerrar', { duration: 3000 });
+    }
+
   }
 
 
@@ -135,6 +145,7 @@ export class MapaComponent implements OnInit {
         this.arrayDeMarcadores[contador].remove();
         this.arrayDeMarcadores.splice(contador, 1);
         this.indice = this.marcadores.length;
+        this.snackBar.open('Marcador borrado', 'cerrar', { duration: 3000 });
       }
       ++contador;
     });
